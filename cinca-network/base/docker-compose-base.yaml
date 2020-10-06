@@ -1,0 +1,69 @@
+version: '2'
+
+services:
+
+  orderer.cinca-network.com:
+    container_name: orderer.cinca-network.com
+    image: hyperledger/fabric-orderer
+    environment:
+      - ORDERER_GENERAL_LOGLEVEL=INFO
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_GENESISMETHOD=file
+      - ORDERER_GENERAL_GENESISFILE=/opt/gopath/fabric-samples/cinca-network/channel-artifacts/genesis.block
+      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
+      - ORDERER_GENERAL_LOCALMSPDIR=/var/hyperledger/orderer/msp
+      # enabled TLS
+      - ORDERER_GENERAL_TLS_ENABLED=true
+      - ORDERER_GENERAL_TLS_PRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+      - ORDERER_GENERAL_TLS_CERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+      - ORDERER_GENERAL_TLS_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric
+    command: orderer
+    volumes:
+    - ../channel-artifacts/genesis.block:/opt/gopath/fabric-samples/cinca-network/channel-artifacts/genesis.block
+    - ../crypto-config/ordererOrganizations/cinca-network.com/orderers/orderer.cinca-network.com/msp:/var/hyperledger/orderer/msp
+    - ../crypto-config/ordererOrganizations/cinca-network.com/orderers/orderer.cinca-network.com/tls/:/var/hyperledger/orderer/tls
+    - orderer.cinca-network.com:/var/hyperledger/production/orderer
+    ports:
+      - 7050:7050
+
+  peer0.be1.cinca-network.com:
+    container_name: peer0.be1.cinca-network.com
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - GODEBUG=netdns=go
+      - CORE_PEER_ID=peer0.be1.cinca-network.com
+      - CORE_PEER_ADDRESS=peer0.be1.cinca-network.com:7051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.be1.cinca-network.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.be1.cinca-network.com:7051
+      - CORE_PEER_LOCALMSPID=cinca1MSP
+    volumes:
+        - /var/run/:/host/var/run/
+        - ../crypto-config/peerOrganizations/be1.cinca-network.com/peers/peer0.be1.cinca-network.com/msp:/etc/hyperledger/fabric/msp
+        - ../crypto-config/peerOrganizations/be1.cinca-network.com/peers/peer0.be1.cinca-network.com/tls:/etc/hyperledger/fabric/tls
+        - peer0.be1.cinca-network.com:/var/hyperledger/production
+    ports:
+      - 7051:7051
+  
+
+  peer0.be2.cinca-network.com:
+    container_name: peer0.be2.cinca-network.com
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - GODEBUG=netdns=go
+      - CORE_PEER_ID=peer0.be2.cinca-network.com
+      - CORE_PEER_ADDRESS=peer0.be2.cinca-network.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.be2.cinca-network.com:7051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.be2.cinca-network.com:7051
+      - CORE_PEER_LOCALMSPID=cinca2MSP
+    volumes:
+        - /var/run/:/host/var/run/
+        - ../crypto-config/peerOrganizations/be2.cinca-network.com/peers/peer0.be2.cinca-network.com/msp:/etc/hyperledger/fabric/msp
+        - ../crypto-config/peerOrganizations/be2.cinca-network.com/peers/peer0.be2.cinca-network.com/tls:/etc/hyperledger/fabric/tls
+        - peer0.be2.cinca-network.com:/var/hyperledger/production
+    ports:
+      - 9051:7051

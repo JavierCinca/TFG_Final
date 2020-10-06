@@ -1,0 +1,35 @@
+
+name: cinca-network-be1
+version: 1.0.0
+client:
+  organization: cinca1
+  connection:
+    timeout:
+      peer:
+        endorser: '300'
+organizations:
+  cinca1:
+    mspid: cinca1MSP
+    peers:
+    - peer0.be1.cinca-network.com
+    certificateAuthorities:
+    - ca.be1.cinca-network.com
+peers:
+  peer0.be1.cinca-network.com:
+    url: grpcs://localhost:7051
+    tlsCACerts:
+      path: crypto-config/peerOrganizations/be1.cinca-network.com/peers/peer0.be1.cinca-network.com/tls/ca.crt
+        
+    grpcOptions:
+      ssl-target-name-override: peer0.be1.cinca-network.com
+      hostnameOverride: peer0.be1.cinca-network.com
+  
+certificateAuthorities:
+  ca.be1.cinca-network.com:
+    url: https://localhost:7054
+    caName: ca-be1
+    tlsCACerts:
+      path: crypto-config/peerOrganizations/be1.cinca-network.com/peers/peer1.be1.cinca-network.com/msp/tlscacerts/tlsca.be1.cinca-network.com-cert.pem
+        
+    httpOptions:
+      verify: false

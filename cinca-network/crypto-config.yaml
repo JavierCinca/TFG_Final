@@ -1,0 +1,24 @@
+OrdererOrgs:
+  - Name: OrderingService
+    Domain: cinca-network.com
+    Specs:
+      - Hostname: orderer
+
+PeerOrgs:
+  - Name: cinca1
+    Domain: be1.cinca-network.com
+    EnableNodeOUs: true
+    Template:
+      Count: 2
+
+    Users: 
+      Count: 1
+      
+  - Name: cinca2
+    Domain: be2.cinca-network.com
+    EnableNodeOUs: true
+    Template:
+      Count: 1
+
+    Users: 
+      Count: 1

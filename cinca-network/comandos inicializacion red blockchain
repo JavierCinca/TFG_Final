@@ -1,0 +1,50 @@
+docker exec -e "CORE_PEER_LOCALMSPID=cinca1MSP" -e "CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/fabric-samples/cinca-network/crypto-config/peerOrganizations/be1.cinca-network.com/peers/peer0.be1.cinca-network.com/tls/ca.crt" -e "CORE_PEER_MSPCONFIGPATH=/opt/gopath/fabric-samples/cinca-network/crypto-config/peerOrganizations/be1.cinca-network.com/users/Admin@be1.cinca-network.com/msp" -e "CORE_PEER_ADDRESS=peer0.be1.cinca-network.com:7051" -it cli bash
+
+
+
+docker exec -e "CORE_PEER_LOCALMSPID=cinca2MSP" -e "CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/fabric-samples/cinca-network/crypto-config/peerOrganizations/be2.cinca-network.com/peers/peer0.be2.cinca-network.com/tls/ca.crt" -e "CORE_PEER_MSPCONFIGPATH=/opt/gopath/fabric-samples/cinca-network/crypto-config/peerOrganizations/be2.cinca-network.com/users/Admin@be2.cinca-network.com/msp" -e "CORE_PEER_ADDRESS=peer0.be2.cinca-network.com:7051" -it cli bash
+
+
+export ORDERER_CA=/opt/gopath/fabric-samples/cinca-network/crypto-config/ordererOrganizations/cinca-network.com/orderers/orderer.cinca-network.com/msp/tlscacerts/tlsca.cinca-network.com-cert.pem
+
+
+peer channel create -o orderer.cinca-network.com:7050 -c channeldemo -f /opt/gopath/fabric-samples/cinca-network/channel-artifacts/channel.tx --tls --cafile $ORDERER_CA
+
+peer channel join -b channeldemo.block --tls --cafile $ORDERER_CA
+
+peer channel update -o orderer.cinca-network.com:7050 -c channeldemo -f /opt/gopath/fabric-samples/cinca-network/channel-artifacts/Burakcan1Anchor.tx --tls --cafile $ORDERER_CA
+
+peer channel update -o orderer.cinca-network.com:7050 -c channeldemo -f /opt/gopath/fabric-samples/cinca-network/channel-artifacts/Burakcan2Anchor.tx --tls --cafile $ORDERER_CA
+
+go get github.com/hyperledger/fabric-chaincode-go/shim
+go get github.com/hyperledger/fabric-contract-api-go/contractapi
+
+
+cd /opt/gopath/src/chain/abstore/go
+GO111MODULE=on go mod vendor
+cd -
+
+peer lifecycle chaincode package becc.tar.gz --path chain/be_chaincode/go/ --lang golang --label becc_1
+
+peer lifecycle chaincode install becc.tar.gz
+
+peer lifecycle chaincode queryinstalled
+
+peer lifecycle chaincode approveformyorg -o orderer.cinca-network.com:7050 --tls true --cafile $ORDERER_CA --channelID channeldemo --name becc --version 1 --init-required --package-id $CC_PACKAGE_ID --sequence 1 --signature-policy "OR('cinca1MSP.peer', 'cinca2MSP.peer')"
+
+
+peer lifecycle chaincode checkcommitreadiness --channelID channeldemo --name becc --version 1 --sequence 1 --output json --init-required --signature-policy "OR('cinca1MSP.peer', 'cinca2MSP.peer')"
+
+
+
+export PEER_BE1_TLSROOTCERTFILES=/opt/gopath/fabric-samples/cinca-network/crypto-config/peerOrganizations/be1.cinca-network.com/peers/peer0.be1.cinca-network.com/tls/ca.crt
+export PEER_BE2_TLSROOTCERTFILES=/opt/gopath/fabric-samples/cinca-network/crypto-config/peerOrganizations/be2.cinca-network.com/peers/peer0.be2.cinca-network.com/tls/ca.crt
+
+
+peer lifecycle chaincode commit -o orderer.cinca-network.com:7050 --tls true --cafile $ORDERER_CA --channelID channeldemo --name becc --peerAddresses peer0.be1.cinca-network.com:7051 --tlsRootCertFiles $PEER_BE1_TLSROOTCERTFILES --peerAddresses peer0.be2.cinca-network.com:7051 --tlsRootCertFiles $PEER_BE2_TLSROOTCERTFILES --version 1 --sequence 1 --init-required --signature-policy "OR('cinca1MSP.peer', 'cinca2MSP.peer')"
+
+peer lifecycle chaincode querycommitted --channelID channeldemo --name becc
+
+peer chaincode invoke -o orderer.cinca-network.com:7050 --tls true --cafile $ORDERER_CA -C channeldemo -n becc --peerAddresses peer0.be1.cinca-network.com:7051 --tlsRootCertFiles $PEER_BE1_TLSROOTCERTFILES --peerAddresses peer0.be2.cinca-network.com:7051 --tlsRootCertFiles $PEER_BE2_TLSROOTCERTFILES --isInit -c '{"function":"initLedger","Args":[]}'
+
+peer chaincode query -C channeldemo -n becc -c '{"Args":["queryAllForexs"]}'
