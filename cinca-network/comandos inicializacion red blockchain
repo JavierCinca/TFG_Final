@@ -12,9 +12,9 @@ peer channel create -o orderer.cinca-network.com:7050 -c channeldemo -f /opt/gop
 
 peer channel join -b channeldemo.block --tls --cafile $ORDERER_CA
 
-peer channel update -o orderer.cinca-network.com:7050 -c channeldemo -f /opt/gopath/fabric-samples/cinca-network/channel-artifacts/Burakcan1Anchor.tx --tls --cafile $ORDERER_CA
+peer channel update -o orderer.cinca-network.com:7050 -c channeldemo -f /opt/gopath/fabric-samples/cinca-network/channel-artifacts/Cinca1Anchor.tx --tls --cafile $ORDERER_CA
 
-peer channel update -o orderer.cinca-network.com:7050 -c channeldemo -f /opt/gopath/fabric-samples/cinca-network/channel-artifacts/Burakcan2Anchor.tx --tls --cafile $ORDERER_CA
+peer channel update -o orderer.cinca-network.com:7050 -c channeldemo -f /opt/gopath/fabric-samples/cinca-network/channel-artifacts/Cinca2Anchor.tx --tls --cafile $ORDERER_CA
 
 go get github.com/hyperledger/fabric-chaincode-go/shim
 go get github.com/hyperledger/fabric-contract-api-go/contractapi
